@@ -1,5 +1,6 @@
 import dayjs, { Dayjs } from 'dayjs'
 import { ChangeEvent, useEffect, useState } from 'react'
+import { History } from '../../types'
 import { useStorage } from './useStorage'
 
 export function useForm() {
@@ -8,40 +9,96 @@ export function useForm() {
   const [date, setDate] = useState<Dayjs | null>(dayjs())
   const [autoReload, setAutoReload] = useState(false)
   const [timeLapse, setTimeLapse] = useState<string>('RESET')
-  const { saveSetting, loadSetting } = useStorage(origin)
+  const [history, setHistory] = useState<History>([])
+  const [hasChanges, setHasChanges] = useState(false)
+  const {
+    saveSetting,
+    loadSetting,
+    loadHistory,
+    deleteHistoryItem,
+    addToHistory,
+  } = useStorage(origin)
 
-  const handleSwitchChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleSwitchChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const newEnabled = event.target.checked
     setEnabled(newEnabled)
-    saveSetting(newEnabled, date?.format() || '', autoReload, timeLapse)
+    // enabledの切り替えは即時反映
+    await saveSetting(
+      newEnabled,
+      date?.format() || '',
+      autoReload,
+      timeLapse,
+      false,
+    )
   }
 
   const handleDateChange = (newDate: Dayjs | null) => {
     setDate(newDate ?? dayjs())
-    saveSetting(enabled, newDate?.format() || '', autoReload, timeLapse)
+    setHasChanges(true)
   }
 
   const handleAutoReloadChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newAutoReload = event.target.checked
     setAutoReload(newAutoReload)
-    saveSetting(enabled, date?.format() || '', newAutoReload, timeLapse)
+    setHasChanges(true)
   }
 
   const handleTimeLapseChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newTimeLapse = event.target.value
     setTimeLapse(newTimeLapse)
-    saveSetting(enabled, date?.format() || '', autoReload, newTimeLapse)
+    setHasChanges(true)
+  }
+
+  const handleApply = async () => {
+    await saveSetting(
+      enabled,
+      date?.format() || '',
+      autoReload,
+      timeLapse,
+      true,
+    )
+    setHasChanges(false)
+    const historyData = await loadHistory()
+    setHistory(historyData)
+  }
+
+  const handleHistorySelect = async (historyItem: History[0]) => {
+    setDate(dayjs(historyItem.date))
+    // 履歴選択時は即時反映
+    await saveSetting(enabled, historyItem.date, autoReload, timeLapse, false)
+    // 選択した日付を履歴の先頭に移動
+    await addToHistory({ date: historyItem.date, timestamp: Date.now() })
+    const historyData = await loadHistory()
+    setHistory(historyData)
+    setHasChanges(false)
+  }
+
+  const handleHistoryDelete = async (date: string) => {
+    await deleteHistoryItem(date)
+    const historyData = await loadHistory()
+    setHistory(historyData)
   }
 
   useEffect(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       const tab = tabs[0]
       if (!tab?.url) return
       const url = new URL(tab.url)
       setOrigin(url.origin)
-      loadSetting(setEnabled, setDate, setAutoReload, setTimeLapse)
     })
-  }, [loadSetting])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (!origin) return
+    const loadData = async () => {
+      await loadSetting(setEnabled, setDate, setAutoReload, setTimeLapse)
+      const historyData = await loadHistory()
+      setHistory(historyData)
+    }
+    loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [origin])
 
   return {
     origin,
@@ -49,9 +106,14 @@ export function useForm() {
     date,
     autoReload,
     timeLapse,
+    history,
+    hasChanges,
     handleSwitchChange,
     handleDateChange,
     handleAutoReloadChange,
     handleTimeLapseChange,
+    handleApply,
+    handleHistorySelect,
+    handleHistoryDelete,
   }
 }

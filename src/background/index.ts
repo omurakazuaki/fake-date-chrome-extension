@@ -275,7 +275,6 @@ async function setupFakeDate(tabId: number) {
       setting?.enabled ? setting.date : '',
       calculateStartingTime(setting),
     )
-    updateBadge(setting)
   } catch (error) {
     // タブが既に閉じられている場合などのエラーを無視
     console.debug('setupFakeDate error:', error)
