@@ -7,18 +7,14 @@ const manifest = defineManifest({
   name: 'Fake Date',
   description: 'JavaScriptのDateオブジェクトをモック化します。',
   version: '1.0.0',
-  permissions: ['storage', 'tabs', 'scripting'],
+  permissions: ['storage', 'scripting', 'webNavigation'],
   host_permissions: ['<all_urls>'],
   action: {
     default_icon: 'icon128.png',
     default_title: 'Fake Date',
     default_popup: 'src/popup/index.html',
   },
-  background: {
-    service_worker: 'src/background/index.ts',
-  },
+  background: { service_worker: 'src/background/index.ts' },
 })
 
-export default defineConfig({
-  plugins: [react(), crx({ manifest })],
-})
+export default defineConfig({ plugins: [react(), crx({ manifest })] })

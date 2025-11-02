@@ -41,13 +41,13 @@ export const createFakeDate = (date: string, startingTime: number) => {
 export const injectFakeDate = (
   date: string,
   startingTime: number,
-  autReload: boolean,
+  autoReload: boolean,
 ) => {
   window.__FakeDate.inject(date, startingTime)
-  if (autReload) location.reload()
+  if (autoReload) location.reload()
 }
 
-export const removeFakeDate = (autReload: boolean) => {
+export const removeFakeDate = (autoReload: boolean) => {
   window.__FakeDate.remove()
-  if (autReload) location.reload()
+  if (autoReload) location.reload()
 }
