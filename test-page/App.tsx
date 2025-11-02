@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
 
+declare global {
+  interface DateConstructor {
+    real: DateConstructor
+  }
+}
+
 function App() {
   const [currentTime, setCurrentTime] = useState(new Date())
 
@@ -18,15 +24,17 @@ function App() {
     const hours = String(date.getHours()).padStart(2, '0')
     const minutes = String(date.getMinutes()).padStart(2, '0')
     const seconds = String(date.getSeconds()).padStart(2, '0')
-    const milliseconds = String(date.getMilliseconds()).padStart(3, '0')
+
+    const realNow = Date.real ? new Date.real() : new Date()
 
     return {
       date: `${year}-${month}-${day}`,
       time: `${hours}:${minutes}:${seconds}`,
+      realNow,
     }
   }
 
-  const { date, time } = formatTime(currentTime)
+  const { date, time, realNow } = formatTime(currentTime)
 
   return (
     <div
@@ -60,8 +68,7 @@ function App() {
         <div style={{ fontSize: '6rem' }}>{time}</div>
       </div>
       <div style={{ marginTop: '2rem', fontSize: '1rem', opacity: 0.7 }}>
-        <p>now: {currentTime.toLocaleString('ja-JP')}</p>
-        <p>Timestamp: {currentTime.getTime()}</p>
+        <p>real now: {realNow.toLocaleString('ja-JP')}</p>
       </div>
     </div>
   )

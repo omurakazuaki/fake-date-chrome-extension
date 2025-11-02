@@ -24,6 +24,7 @@ export const createFakeDate = (date: string, startingTime: number) => {
           const delta = startingTime < 0 ? 0 : RealDate.now() - startingTime
           return new RealDate(date).getTime() + delta
         }
+        FakeDate.real = RealDate
         FakeDate.prototype = RealDate.prototype
         Object.setPrototypeOf(FakeDate, RealDate)
         window.Date = FakeDate as unknown as DateConstructor

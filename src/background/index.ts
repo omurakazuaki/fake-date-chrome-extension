@@ -5,6 +5,13 @@ import {
 } from '../lib/fake-date'
 import { Setting, Settings } from '../types'
 
+// デバッグログを制御する関数
+const debug = (...args: unknown[]) => {
+  if (import.meta.env.DEV) {
+    console.debug(...args)
+  }
+}
+
 /**
  * ナビゲーションコミット時のリスナー（最優先）
  *
@@ -156,7 +163,7 @@ async function updateBadgeForTab(tabId: number) {
     const setting = settings[origin]
     updateBadge(setting)
   } catch (error) {
-    console.debug('updateBadgeForTab error:', error)
+    debug('updateBadgeForTab error:', error)
     updateBadge(undefined)
   }
 }
@@ -277,7 +284,7 @@ async function setupFakeDate(tabId: number) {
     )
   } catch (error) {
     // タブが既に閉じられている場合などのエラーを無視
-    console.debug('setupFakeDate error:', error)
+    debug('setupFakeDate error:', error)
   }
 }
 

@@ -15,6 +15,9 @@ const manifest = defineManifest({
     default_popup: 'src/popup/index.html',
   },
   background: { service_worker: 'src/background/index.ts' },
+  content_security_policy: {
+    extension_pages: "script-src 'self'; object-src 'self'",
+  },
 })
 
 export default defineConfig({ plugins: [react(), crx({ manifest })] })
