@@ -6,7 +6,7 @@ const manifest = defineManifest({
   manifest_version: 3,
   name: 'Fake Date',
   description: 'JavaScriptのDateオブジェクトをモック化します。',
-  version: '1.0.0',
+  version: '1.1.0',
   permissions: ['storage', 'scripting', 'webNavigation'],
   host_permissions: ['<all_urls>'],
   action: {

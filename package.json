@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "watch": "vite build --watch"
+    "watch": "vite build --watch",
+    "test:dev": "vite --config vite.config.test.ts",
+    "package": "npm run build && cd dist && zip -r ../fake-date-extension.zip ."
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
