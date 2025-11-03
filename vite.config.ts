@@ -20,4 +20,24 @@ const manifest = defineManifest({
   },
 })
 
-export default defineConfig({ plugins: [react(), crx({ manifest })] })
+export default defineConfig({
+  plugins: [react(), crx({ manifest })],
+  build: {
+    chunkSizeWarningLimit: 1000, // Chrome拡張機能では警告を1MBに緩和
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Material-UIを別チャンクに分離
+          'mui-core': [
+            '@mui/material',
+            '@mui/system',
+            '@emotion/react',
+            '@emotion/styled',
+          ],
+          'mui-pickers': ['@mui/x-date-pickers'],
+          vendor: ['react', 'react-dom', 'dayjs'],
+        },
+      },
+    },
+  },
+})
