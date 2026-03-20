@@ -127,11 +127,25 @@ function executeFakeDateFunction(tabId: number, setting: Setting | undefined) {
  * これにより、ユーザーは拡張機能のアイコンを見るだけで
  * 現在のタブでFakeDateが有効かどうかを確認できます
  */
-function updateBadge(setting: Setting | undefined) {
+async function updateBadge(tabId: number, setting: Setting | undefined) {
   const { path, title } = setting?.enabled
     ? { path: 'icon128.png', title: `Fake Date (${setting.date})` }
     : { path: 'icon128_disabled.png', title: 'Fake Date (OFF)' }
   chrome.action.setIcon({ path })
+  await chrome.action.setIcon({
+    tabId,
+    path: setting?.enabled ? 'icon128.png' : 'icon128_disabled.png',
+  })
+
+  if (setting?.enabled) {
+    await chrome.action.setBadgeText({ tabId, text: 'ON' })
+    await chrome.action.setBadgeBackgroundColor({
+      tabId,
+      color: '#4CAF50',
+    })
+  } else {
+    await chrome.action.setBadgeText({ tabId, text: '' })
+  }
   chrome.action.setTitle({ title })
 }
 
@@ -153,7 +167,7 @@ async function updateBadgeForTab(tabId: number) {
   try {
     const tab = await chrome.tabs.get(tabId)
     if (!tab?.url) {
-      updateBadge(undefined)
+      updateBadge(tabId, undefined)
       return
     }
 
@@ -161,10 +175,10 @@ async function updateBadgeForTab(tabId: number) {
     const origin = url.origin
     const settings = await chrome.storage.local.get<Settings>(origin)
     const setting = settings[origin]
-    updateBadge(setting)
+    updateBadge(tabId, setting)
   } catch (error) {
     debug('updateBadgeForTab error:', error)
-    updateBadge(undefined)
+    updateBadge(tabId, undefined)
   }
 }
 

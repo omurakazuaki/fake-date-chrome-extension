@@ -26,3 +26,5 @@ dist-ssr
 *.tsbuildinfo
 
 fake-date-extension.zip
+
+test-results
