@@ -128,10 +128,9 @@ function executeFakeDateFunction(tabId: number, setting: Setting | undefined) {
  * 現在のタブでFakeDateが有効かどうかを確認できます
  */
 async function updateBadge(tabId: number, setting: Setting | undefined) {
-  const { path, title } = setting?.enabled
-    ? { path: 'icon128.png', title: `Fake Date (${setting.date})` }
-    : { path: 'icon128_disabled.png', title: 'Fake Date (OFF)' }
-  chrome.action.setIcon({ path })
+  const title = setting?.enabled
+    ? `Fake Date (${setting.date})`
+    : 'Fake Date (OFF)'
   await chrome.action.setIcon({
     tabId,
     path: setting?.enabled ? 'icon128.png' : 'icon128_disabled.png',
@@ -146,7 +145,7 @@ async function updateBadge(tabId: number, setting: Setting | undefined) {
   } else {
     await chrome.action.setBadgeText({ tabId, text: '' })
   }
-  chrome.action.setTitle({ title })
+  chrome.action.setTitle({ tabId, title })
 }
 
 /**

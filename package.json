@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "watch": "vite build --watch",
     "test:dev": "vite --config vite.config.test.ts",
+    "setup:mcp": "node scripts/setup-playwright-mcp.mjs",
     "test:e2e": "npm run build && playwright test",
     "package": "npm run build && cd dist && zip -r ../fake-date-extension.zip ."
   },

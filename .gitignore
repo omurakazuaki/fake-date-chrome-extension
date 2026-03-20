@@ -27,4 +27,6 @@ dist-ssr
 
 fake-date-extension.zip
 
-test-results
+test-results/
+.playwright-mcp-profile/
+playwright-mcp.config.json
