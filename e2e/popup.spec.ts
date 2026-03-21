@@ -90,16 +90,18 @@ test.describe('Popup UI', () => {
     await popup.locator('label').click()
     await expect(popup.getByText('Enabled')).toBeVisible()
 
-    // 日付を入力: DatePicker の各セクション（年/月/日）にキーボードで入力
-    await popup.getByRole('group', { name: 'Date' }).click()
+    // 日付を入力: DatePicker の Year spinbutton をクリックしてから入力
+    const dateGroup = popup.getByRole('group', { name: 'Date' })
+    await dateGroup.getByRole('spinbutton', { name: 'Year' }).click()
     await popup.keyboard.type('20200615')
 
-    // 時刻を入力: TimePicker の各セクション（時/分/秒）にキーボードで入力
-    await popup.getByRole('group', { name: 'Time' }).click()
+    // 時刻を入力: TimePicker の Hours spinbutton をクリックしてから入力
+    const timeGroup = popup.getByRole('group', { name: 'Time' })
+    await timeGroup.getByRole('spinbutton', { name: 'Hours' }).click()
     await popup.keyboard.type('120000')
 
     // Keep モードを選択
-    await popup.getByLabel('Keep').click()
+    await popup.getByText('Continue').click()
 
     // Apply ボタンをクリック
     await popup.getByRole('button', { name: 'Apply' }).click()
@@ -169,6 +171,81 @@ test.describe('Popup UI', () => {
     expect(stored).toBeDefined()
     expect(stored.enabled).toBe(true)
     expect(stored.timeSpeed).toBe(10)
+  })
+
+  test('Apply 成功時に Snackbar が表示される', async ({
+    context,
+    background,
+  }) => {
+    const popup = await openExtensionPopup(background, context, TEST_ORIGIN)
+    await popup.locator('label').click()
+    await expect(popup.getByText('Enabled')).toBeVisible()
+
+    // 日付を変更して Apply を有効化
+    await popup.getByRole('group', { name: 'Date' }).click()
+    await popup.keyboard.type('20200101')
+
+    // Apply ボタンをクリック
+    await popup.getByRole('button', { name: 'Apply' }).click()
+
+    // Snackbar が表示される
+    await expect(popup.getByText('Settings applied')).toBeVisible()
+  })
+
+  test('履歴選択はフォームに反映されるが即時保存されない', async ({
+    context,
+    background,
+  }) => {
+    // あらかじめ設定と履歴を保存しておく
+    const historyDate = '2023-01-15T10:30:00+09:00'
+    await background.evaluate(
+      async ({ origin, historyDate }: { origin: string; historyDate: string }) => {
+        await chrome.storage.local.set({
+          [origin]: {
+            enabled: true,
+            date: new Date().toISOString(),
+            timeLapse: 'RESET',
+            timeSpeed: 1,
+            autoReload: false,
+            startingTime: Date.now(),
+          },
+          [`dateHistory_${origin}`]: [
+            { date: historyDate, timestamp: Date.now() },
+          ],
+        })
+      },
+      { origin: TEST_ORIGIN, historyDate },
+    )
+
+    const popup = await openExtensionPopup(background, context, TEST_ORIGIN)
+    await expect(popup.getByText('Enabled')).toBeVisible()
+
+    // 履歴チップをクリック
+    await popup.getByText('2023/01/15 10:30:00').click()
+    await popup.waitForTimeout(300)
+
+    // ストレージは元の日付のまま（即時保存されていない）
+    const stored = await background.evaluate(async (origin: string) => {
+      const result = await chrome.storage.local.get(origin)
+      return result[origin]
+    }, TEST_ORIGIN)
+    expect(stored.date).not.toContain('2023-01-15')
+
+    // Apply ボタンが有効化されている（変更あり）
+    await expect(popup.getByRole('button', { name: 'Apply' })).toBeEnabled()
+
+    // Apply をクリックすると保存される
+    await popup.getByRole('button', { name: 'Apply' }).click()
+    await popup.waitForTimeout(300)
+
+    const storedAfterApply = await background.evaluate(
+      async (origin: string) => {
+        const result = await chrome.storage.local.get(origin)
+        return result[origin]
+      },
+      TEST_ORIGIN,
+    )
+    expect(storedAfterApply.date).toContain('2023-01-15')
   })
 
   test('既存の設定が有効化されている場合、ポップアップに反映される', async ({

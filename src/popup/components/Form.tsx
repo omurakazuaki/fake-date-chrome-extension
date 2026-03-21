@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -7,6 +8,7 @@ import {
   FormLabel,
   Radio,
   RadioGroup,
+  Snackbar,
   Stack,
   Switch,
   TextField,
@@ -31,46 +33,117 @@ export default function Form() {
     timeSpeed,
     history,
     hasChanges,
+    applied,
     handleSwitchChange,
     handleDateChange,
     handleAutoReloadChange,
     handleTimeLapseChange,
     handleTimeSpeedChange,
     handleApply,
+    handleAppliedClose,
     handleHistorySelect,
     handleHistoryDelete,
   } = useForm()
 
   return (
     <Box sx={{ p: 1.5, maxHeight: '600px', overflowY: 'auto' }}>
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 1 }}>
         <Typography
           variant="caption"
-          sx={{ mb: 0.5, display: 'block', wordBreak: 'break-all' }}
+          sx={{ display: 'block', wordBreak: 'break-all' }}
         >
           {origin}
         </Typography>
         <FormControlLabel
-          control={<Switch checked={enabled} onChange={handleSwitchChange} />}
+          control={
+            <Switch
+              checked={enabled}
+              onChange={handleSwitchChange}
+              size="small"
+            />
+          }
           label={enabled ? 'Enabled' : 'Disabled'}
+          sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
         />
       </Box>
       {enabled && (
         <>
+          <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="Date"
+                value={date}
+                onChange={handleDateChange}
+                disabled={!enabled}
+                views={['year', 'month', 'day']}
+                format="YYYY/MM/DD"
+                slotProps={{
+                  textField: { size: 'small', fullWidth: true },
+                  popper: {
+                    placement: 'bottom-start',
+                    modifiers: [
+                      {
+                        name: 'preventOverflow',
+                        options: {
+                          boundary: 'viewport',
+                          altAxis: true,
+                          tether: false,
+                        },
+                      },
+                      {
+                        name: 'flip',
+                        options: { fallbackPlacements: ['top-start'] },
+                      },
+                    ],
+                  },
+                }}
+              />
+              <TimePicker
+                label="Time"
+                value={date}
+                onChange={handleDateChange}
+                disabled={!enabled}
+                ampm={false}
+                views={['hours', 'minutes', 'seconds']}
+                format="HH:mm:ss"
+                slotProps={{
+                  textField: { size: 'small', fullWidth: true },
+                  popper: {
+                    placement: 'bottom-start',
+                    modifiers: [
+                      {
+                        name: 'preventOverflow',
+                        options: {
+                          boundary: 'viewport',
+                          altAxis: true,
+                          tether: false,
+                        },
+                      },
+                      {
+                        name: 'flip',
+                        options: { fallbackPlacements: ['top-start'] },
+                      },
+                    ],
+                  },
+                }}
+              />
+            </LocalizationProvider>
+          </Stack>
+
           {history.length > 0 && (
             <Box
               sx={{
                 mb: 1.5,
-                maxHeight: '120px',
+                maxHeight: '80px',
                 overflowY: 'auto',
                 border: '1px solid #e0e0e0',
                 borderRadius: 1,
-                p: 1,
+                p: 0.75,
               }}
             >
               <Typography
                 variant="caption"
-                sx={{ mb: 0.5, display: 'block', fontWeight: 'bold' }}
+                sx={{ mb: 0.25, display: 'block', fontWeight: 'bold' }}
               >
                 History
               </Typography>
@@ -83,83 +156,67 @@ export default function Form() {
                     onDelete={() => handleHistoryDelete(item.date)}
                     size="small"
                     color={date?.format() === item.date ? 'primary' : 'default'}
-                    sx={{ mb: 0.5 }}
                   />
                 ))}
               </Stack>
             </Box>
           )}
-          <FormGroup sx={{ mb: 2 }}>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Date"
-                value={date}
-                onChange={handleDateChange}
-                disabled={!enabled}
-                views={['year', 'month', 'day']}
-                format="YYYY/MM/DD"
-                slotProps={{
-                  textField: { size: 'small', fullWidth: true },
-                }}
-              />
-            </LocalizationProvider>
-          </FormGroup>
-          <FormGroup sx={{ mb: 2 }}>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <TimePicker
-                label="Time"
-                value={date}
-                onChange={handleDateChange}
-                disabled={!enabled}
-                ampm={false}
-                views={['hours', 'minutes', 'seconds']}
-                format="HH:mm:ss"
-                slotProps={{
-                  textField: { size: 'small', fullWidth: true },
-                }}
-              />
-            </LocalizationProvider>
-          </FormGroup>
-          <FormGroup sx={{ mb: 2 }}>
+
+          <FormGroup sx={{ mb: 1 }}>
             <FormControlLabel
               control={
                 <Switch
                   checked={autoReload}
                   onChange={handleAutoReloadChange}
                   disabled={!enabled}
+                  size="small"
                 />
               }
               label="Automatic reload"
+              sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
             />
           </FormGroup>
-          <FormGroup sx={{ mb: 2 }}>
-            <FormLabel sx={{ mb: 0.5, fontSize: '0.875rem' }}>
-              Time lapse mode
-            </FormLabel>
+          <FormGroup sx={{ mb: 1.5 }}>
+            <FormLabel sx={{ fontSize: '0.75rem' }}>Time lapse mode</FormLabel>
             <RadioGroup value={timeLapse} onChange={handleTimeLapseChange}>
               <FormControlLabel
                 value="RESET"
                 control={<Radio size="small" />}
-                label="Reset on reload"
+                label={
+                  <Box>
+                    <Typography variant="body2">Reset on reload</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Restart from the set time on each page load
+                    </Typography>
+                  </Box>
+                }
                 disabled={!enabled}
                 sx={{
-                  my: -1,
-                  '& .MuiFormControlLabel-label': { fontSize: '0.875rem' },
+                  mb: 0.5,
+                  alignItems: 'flex-start',
+                  '& .MuiRadio-root': { pt: 0.5 },
                 }}
               />
               <FormControlLabel
                 value="KEEP"
                 control={<Radio size="small" />}
-                label="Keep"
+                label={
+                  <Box>
+                    <Typography variant="body2">Continue</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Time keeps advancing from when it was set
+                    </Typography>
+                  </Box>
+                }
                 disabled={!enabled}
                 sx={{
-                  my: -1,
-                  '& .MuiFormControlLabel-label': { fontSize: '0.875rem' },
+                  alignItems: 'flex-start',
+                  '& .MuiRadio-root': { pt: 0.5 },
                 }}
               />
             </RadioGroup>
           </FormGroup>
-          <FormGroup sx={{ mb: 2 }}>
+          <FormGroup sx={{ mb: 1.5 }}>
             <TextField
               label="Time speed (x0 = stop)"
               type="number"
@@ -180,19 +237,32 @@ export default function Form() {
               }}
             />
           </FormGroup>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              variant="contained"
-              onClick={handleApply}
-              disabled={!hasChanges}
-              fullWidth
-              size="small"
-            >
-              Apply
-            </Button>
-          </Box>
+          <Button
+            variant="contained"
+            onClick={handleApply}
+            disabled={!hasChanges}
+            fullWidth
+            size="small"
+          >
+            Apply
+          </Button>
         </>
       )}
+      <Snackbar
+        open={applied}
+        autoHideDuration={3000}
+        onClose={handleAppliedClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={handleAppliedClose}
+          severity="success"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          Settings applied
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }
