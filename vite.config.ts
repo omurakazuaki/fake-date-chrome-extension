@@ -5,8 +5,8 @@ import { defineConfig } from 'vite'
 const manifest = defineManifest({
   manifest_version: 3,
   name: 'Fake Date',
-  description: 'JavaScriptのDateオブジェクトをモック化します。',
-  version: '1.1.0',
+  description: 'Mock JavaScript Date object for testing. Set any date/time, adjust time speed, and manage per-site settings for web development.',
+  version: '1.2.0',
   permissions: ['storage', 'scripting', 'webNavigation'],
   host_permissions: ['<all_urls>'],
   action: {
