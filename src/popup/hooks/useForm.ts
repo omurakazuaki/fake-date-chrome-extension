@@ -9,6 +9,7 @@ export function useForm() {
   const [date, setDate] = useState<Dayjs | null>(dayjs())
   const [autoReload, setAutoReload] = useState(false)
   const [timeLapse, setTimeLapse] = useState<string>('RESET')
+  const [timeSpeed, setTimeSpeed] = useState<number>(1)
   const [history, setHistory] = useState<History>([])
   const [hasChanges, setHasChanges] = useState(false)
   const {
@@ -28,6 +29,7 @@ export function useForm() {
       date?.format() || '',
       autoReload,
       timeLapse,
+      timeSpeed,
       false,
     )
   }
@@ -49,12 +51,21 @@ export function useForm() {
     setHasChanges(true)
   }
 
+  const handleTimeSpeedChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(event.target.value)
+    if (!isNaN(value) && value >= 0) {
+      setTimeSpeed(value)
+      setHasChanges(true)
+    }
+  }
+
   const handleApply = async () => {
     await saveSetting(
       enabled,
       date?.format() || '',
       autoReload,
       timeLapse,
+      timeSpeed,
       true,
     )
     setHasChanges(false)
@@ -65,7 +76,7 @@ export function useForm() {
   const handleHistorySelect = async (historyItem: History[0]) => {
     setDate(dayjs(historyItem.date))
     // 履歴選択時は即時反映
-    await saveSetting(enabled, historyItem.date, autoReload, timeLapse, false)
+    await saveSetting(enabled, historyItem.date, autoReload, timeLapse, timeSpeed, false)
     // 選択した日付を履歴の先頭に移動
     await addToHistory({ date: historyItem.date, timestamp: Date.now() })
     const historyData = await loadHistory()
@@ -92,7 +103,7 @@ export function useForm() {
   useEffect(() => {
     if (!origin) return
     const loadData = async () => {
-      await loadSetting(setEnabled, setDate, setAutoReload, setTimeLapse)
+      await loadSetting(setEnabled, setDate, setAutoReload, setTimeLapse, setTimeSpeed)
       const historyData = await loadHistory()
       setHistory(historyData)
     }
@@ -106,12 +117,14 @@ export function useForm() {
     date,
     autoReload,
     timeLapse,
+    timeSpeed,
     history,
     hasChanges,
     handleSwitchChange,
     handleDateChange,
     handleAutoReloadChange,
     handleTimeLapseChange,
+    handleTimeSpeedChange,
     handleApply,
     handleHistorySelect,
     handleHistoryDelete,

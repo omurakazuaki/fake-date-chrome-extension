@@ -2,7 +2,7 @@
 name: e2e-verify
 description: >-
   Playwright MCPを使ってFake Date拡張機能のE2E動作検証を実行する。
-  テストページを起動し、ブラウザ上で拡張機能の各モード（STOP/RESET/OFF）を検証する。
+  テストページを起動し、ブラウザ上で拡張機能の各モード（RESET/KEEP/OFF）と時間速度変更（0で停止）を検証する。
   Trigger on: 動作検証, E2Eテスト, 拡張機能テスト, ブラウザテスト
 ---
 
@@ -61,9 +61,10 @@ async (page) => {
 {
   enabled: boolean,      // 有効/無効
   date: string,          // ISO 8601形式の日時（例: '2000-01-01T00:00:00'）
-  timeLapse: string,     // 'STOP' | 'RESET' | 'KEEP'
+  timeLapse: string,     // 'RESET' | 'KEEP'
   autoReload: boolean,   // 自動リロード
-  startingTime: number   // Date.now() のタイムスタンプ
+  startingTime: number,  // Date.now() のタイムスタンプ
+  timeSpeed: number      // 時間経過の速度倍率（デフォルト: 1、範囲: 0.1〜100）
 }
 ```
 
@@ -80,9 +81,10 @@ async (page) => {
       const setting = {
         enabled: true,
         date: '2000-01-01T00:00:00',
-        timeLapse: 'STOP',
+        timeLapse: 'RESET',
         autoReload: true,
-        startingTime: Date.now()
+        startingTime: Date.now(),
+        timeSpeed: 1
       };
       chrome.storage.local.set({ [origin]: setting }, () => {
         resolve({ success: true });
@@ -106,11 +108,12 @@ async (page) => {
 
 以下の3パターンを順に検証する:
 
-| テスト | timeLapse | 確認ポイント |
-|--------|-----------|-------------|
-| **時刻固定** | `STOP` | 表示時刻が設定値に固定され、秒が進まない |
-| **時間経過** | `RESET` | 設定日時から秒が進行する |
-| **無効化** | `enabled: false` | 実際の日時が表示される（real nowと一致） |
+| テスト | timeLapse | timeSpeed | 確認ポイント |
+|--------|-----------|-----------|-------------|
+| **時刻固定** | `RESET` | 0 | 表示時刻が設定値に固定され、秒が進まない |
+| **時間経過** | `RESET` | 1 | 設定日時から秒が進行する |
+| **時間速度変更** | `RESET` | 10 | 設定日時から通常の10倍の速度で秒が進行する |
+| **無効化** | `enabled: false` | 1 | 実際の日時が表示される（real nowと一致） |
 
 ### Step 8: クリーンアップ
 

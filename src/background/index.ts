@@ -108,6 +108,7 @@ function executeFakeDateFunction(tabId: number, setting: Setting | undefined) {
       tabId,
       setting.date,
       calculateStartingTime(setting),
+      setting.timeSpeed ?? 1,
       setting.autoReload,
     )
   } else {
@@ -198,11 +199,12 @@ function executeCreateFakeDate(
   tabId: number,
   date: string,
   startingTime: number,
+  timeSpeed: number,
 ) {
   chrome.scripting.executeScript({
     target: { tabId },
     func: createFakeDate,
-    args: [date, startingTime],
+    args: [date, startingTime, timeSpeed],
     world: 'MAIN',
     injectImmediately: true,
   })
@@ -226,12 +228,13 @@ function executeInjectFakeDate(
   tabId: number,
   date: string,
   startingTime: number,
+  timeSpeed: number,
   autoReload: boolean,
 ) {
   chrome.scripting.executeScript({
     target: { tabId },
     func: injectFakeDate,
-    args: [date, startingTime, autoReload],
+    args: [date, startingTime, timeSpeed, autoReload],
     world: 'MAIN',
     injectImmediately: true,
   })
@@ -294,6 +297,7 @@ async function setupFakeDate(tabId: number) {
       tabId,
       setting?.enabled ? setting.date : '',
       calculateStartingTime(setting),
+      setting?.timeSpeed ?? 1,
     )
   } catch (error) {
     // タブが既に閉じられている場合などのエラーを無視
@@ -308,9 +312,6 @@ async function setupFakeDate(tabId: number) {
  * @returns 起点となるタイムスタンプ（ミリ秒）
  *
  * 時間経過モード:
- * - STOP: -1 を返す（時刻を固定、経過しない）
- *   例: 2023-01-01 12:00:00 に設定すると、常にこの時刻を返す
- *
  * - RESET: Date.now() を返す（現在時刻を起点とする）
  *   例: 2023-01-01 12:00:00 に設定し、10秒後に取得すると 2023-01-01 12:00:10 になる
  *   ページをリロードすると、その時点から再度カウントが始まる
@@ -320,13 +321,11 @@ async function setupFakeDate(tabId: number) {
  *   ページをリロードしても、最初の設定時点からの経過時間が維持される
  *
  * 計算式:
- * FakeDate.now() = 設定日時 + (現在時刻 - 起点時刻)
- * ※ STOP モードの場合は (現在時刻 - 起点時刻) が 0 になる
+ * FakeDate.now() = 設定日時 + (現在時刻 - 起点時刻) * timeSpeed
+ * ※ timeSpeed が 0 の場合は時刻が固定される
  */
 function calculateStartingTime(setting: Setting | undefined) {
   switch (setting?.timeLapse) {
-    case 'STOP':
-      return -1
     case 'RESET':
       return Date.now()
     default:
