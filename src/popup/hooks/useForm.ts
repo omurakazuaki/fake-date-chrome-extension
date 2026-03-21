@@ -37,18 +37,21 @@ export function useForm() {
   const handleDateChange = (newDate: Dayjs | null) => {
     setDate(newDate ?? dayjs())
     setHasChanges(true)
+    setApplied(false)
   }
 
   const handleAutoReloadChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newAutoReload = event.target.checked
     setAutoReload(newAutoReload)
     setHasChanges(true)
+    setApplied(false)
   }
 
   const handleTimeLapseChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newTimeLapse = event.target.value
     setTimeLapse(newTimeLapse)
     setHasChanges(true)
+    setApplied(false)
   }
 
   const handleTimeSpeedChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -56,6 +59,7 @@ export function useForm() {
     if (!isNaN(value) && value >= 0) {
       setTimeSpeed(value)
       setHasChanges(true)
+      setApplied(false)
     }
   }
 
@@ -72,10 +76,7 @@ export function useForm() {
     setApplied(true)
     const historyData = await loadHistory()
     setHistory(historyData)
-  }
-
-  const handleAppliedClose = () => {
-    setApplied(false)
+    setTimeout(() => setApplied(false), 2000)
   }
 
   const handleHistorySelect = (historyItem: History[0]) => {
@@ -126,7 +127,6 @@ export function useForm() {
     handleTimeLapseChange,
     handleTimeSpeedChange,
     handleApply,
-    handleAppliedClose,
     handleHistorySelect,
     handleHistoryDelete,
   }
