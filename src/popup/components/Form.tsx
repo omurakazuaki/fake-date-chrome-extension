@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -8,7 +7,6 @@ import {
   FormLabel,
   Radio,
   RadioGroup,
-  Snackbar,
   Stack,
   Switch,
   TextField,
@@ -40,7 +38,6 @@ export default function Form() {
     handleTimeLapseChange,
     handleTimeSpeedChange,
     handleApply,
-    handleAppliedClose,
     handleHistorySelect,
     handleHistoryDelete,
   } = useForm()
@@ -240,29 +237,16 @@ export default function Form() {
           <Button
             variant="contained"
             onClick={handleApply}
-            disabled={!hasChanges}
+            disabled={!hasChanges && !applied}
             fullWidth
             size="small"
+            color={applied ? 'success' : 'primary'}
+            startIcon={applied ? '\u2714' : undefined}
           >
-            Apply
+            {applied ? 'Applied!' : 'Apply'}
           </Button>
         </>
       )}
-      <Snackbar
-        open={applied}
-        autoHideDuration={3000}
-        onClose={handleAppliedClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={handleAppliedClose}
-          severity="success"
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          Settings applied
-        </Alert>
-      </Snackbar>
     </Box>
   )
 }

@@ -173,7 +173,7 @@ test.describe('Popup UI', () => {
     expect(stored.timeSpeed).toBe(10)
   })
 
-  test('Apply 成功時に Snackbar が表示される', async ({
+  test('Apply 成功時にボタンが Applied! に変わる', async ({
     context,
     background,
   }) => {
@@ -182,14 +182,15 @@ test.describe('Popup UI', () => {
     await expect(popup.getByText('Enabled')).toBeVisible()
 
     // 日付を変更して Apply を有効化
-    await popup.getByRole('group', { name: 'Date' }).click()
+    const dateGroup = popup.getByRole('group', { name: 'Date' })
+    await dateGroup.getByRole('spinbutton', { name: 'Year' }).click()
     await popup.keyboard.type('20200101')
 
     // Apply ボタンをクリック
     await popup.getByRole('button', { name: 'Apply' }).click()
 
-    // Snackbar が表示される
-    await expect(popup.getByText('Settings applied')).toBeVisible()
+    // ボタンが Applied! に変わる
+    await expect(popup.getByRole('button', { name: 'Applied!' })).toBeVisible()
   })
 
   test('履歴選択はフォームに反映されるが即時保存されない', async ({
