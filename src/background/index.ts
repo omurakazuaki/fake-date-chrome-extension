@@ -73,23 +73,15 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
   if (!origins.length) return
   const tabs = await chrome.tabs.query({})
 
-  // 変更されたオリジンに一致する全タブにFakeDateを適用
+  // 変更されたオリジンに一致する全タブにFakeDateを適用し、バッジも更新
   tabs.forEach((tab) => {
     if (!tab?.url) return
     const url = new URL(tab.url)
     const setting = changes[url.origin]?.newValue
     if (!setting) return
     executeFakeDateFunction(tab.id!, setting)
+    updateBadge(tab.id!, setting)
   })
-
-  // バッジは現在アクティブなタブの設定で更新（重要）
-  const activeTabs = await chrome.tabs.query({
-    active: true,
-    currentWindow: true,
-  })
-  if (activeTabs[0]?.id) {
-    await updateBadgeForTab(activeTabs[0].id)
-  }
 })
 
 /**
@@ -299,6 +291,7 @@ async function setupFakeDate(tabId: number) {
       calculateStartingTime(setting),
       setting?.timeSpeed ?? 1,
     )
+    await updateBadge(tabId, setting)
   } catch (error) {
     // タブが既に閉じられている場合などのエラーを無視
     debug('setupFakeDate error:', error)
