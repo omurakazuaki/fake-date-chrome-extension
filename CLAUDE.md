@@ -52,3 +52,20 @@ See `src/types.ts` for the `Setting`, `Settings`, and `History` types.
 ### Build
 
 Vite + `@crxjs/vite-plugin` handles Chrome extension packaging. The manifest is defined in `vite.config.ts`. MUI chunks are split for optimization. Output goes to `dist/`.
+
+## Development Guidelines
+
+### Design Principles
+
+- Follow SOLID principles: Single Responsibility, Open-Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion.
+- Refactor as needed, but always add tests first to ensure existing behavior is preserved before refactoring.
+
+### Development Workflow
+
+1. **Update docs and tests first** — Before starting implementation, update relevant documentation (this CLAUDE.md, README, etc.) and E2E tests.
+2. **Implement** — Write code to make the tests pass.
+3. **Quality checks** — After implementation, run the following:
+   - `npm run build` — TypeScript type checking + production build
+   - `npm run lint` — ESLint static analysis
+   - `npm run test:e2e` — Playwright E2E tests
+4. **Browser verification** — When needed, use Playwright MCP (`/e2e-verify` skill) to verify behavior in the browser.
