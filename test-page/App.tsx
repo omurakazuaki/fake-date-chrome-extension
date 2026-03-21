@@ -12,7 +12,7 @@ function App() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
-    }, 1000)
+    }, 100)
 
     return () => clearInterval(timer)
   }, [])

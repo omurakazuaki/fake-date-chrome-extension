@@ -26,3 +26,7 @@ dist-ssr
 *.tsbuildinfo
 
 fake-date-extension.zip
+
+test-results/
+.playwright-mcp-profile/
+playwright-mcp.config.json

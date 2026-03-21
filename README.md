@@ -1,104 +1,113 @@
 # Fake Date Chrome Extension
 
-JavaScriptのDateオブジェクトをモック化するためのChrome拡張機能です。
-Webアプリケーションの時刻依存の機能をテストする際に便利です。
+A Chrome extension that mocks JavaScript's Date object.
+Useful for testing time-dependent features in web applications.
 
-## 主な機能
+## Key Features
 
-- **Dateモックの設定・解除**: JavaScriptの`Date`オブジェクトを上書きして任意の日時を返すようにします
-- **日時の細かい設定**: 年月日・時分秒まで指定可能
-- **サイトごとの設定保存**: オリジン（ドメイン）ごとに異なる設定を保存・管理
-- **直感的なUI**: Material-UIベースのポップアップインターフェイス
-- **バッジ表示**: 拡張機能のアイコンで現在の状態を確認可能
+- **Date Mocking**: Overrides JavaScript's `Date` object to return any date and time you specify
+- **Fine-Grained Control**: Set year, month, day, hour, minute, and second
+- **Per-Site Settings**: Save and manage different settings for each origin (domain)
+- **Time Speed Control**: Adjust how fast the clock moves — pause (0), slow-motion (<1), normal (1), or fast-forward (>1)
+- **Intuitive UI**: Material-UI based popup interface
+- **Badge Indicator**: Check the current mock status from the extension icon
 
-## 詳細仕様
+## Technical Details
 
-### 設定項目
+### Settings
 
-各サイトごとに以下の設定を保存できます：
+The following settings are saved per site:
 
-- **有効/無効 (enabled)**: Dateモックのオン・オフ切り替え
-- **基準日時 (date)**: モックで返す日時（ISO 8601形式）
-- **自動リロード (autoReload)**: 設定変更時にページを自動的にリロード
-- **時間経過モード (timeLapse)**:
-  - `RESET`: ページリロード時に現在時刻からリセット
-  - `KEEP`: 前回設定時からの経過時間を維持
-  - `STOP`: 時刻を固定（経過しない）
+- **Enabled/Disabled (enabled)**: Toggle Date mocking on/off
+- **Base Date (date)**: The date and time to mock (ISO 8601 format)
+- **Auto Reload (autoReload)**: Automatically reload the page when settings change
+- **Time Speed (timeSpeed)**: Multiplier for clock speed (0 = frozen, 1 = normal, 2 = double speed, etc.)
+- **Time-Lapse Mode (timeLapse)**:
+  - `RESET`: Resets the clock from the configured date on each page reload
+  - `KEEP`: Maintains elapsed time from when the setting was originally applied
 
-### 動作の仕組み
+### How It Works
 
 1. **Background Script** (`src/background/index.ts`)
-   - タブの切り替えやページの更新を監視
-   - Chrome Storage APIで保存された設定を読み込み
-   - Content Scriptとして`fake-date.ts`の関数を注入
+   - Monitors tab switches and page navigation
+   - Loads saved settings from Chrome Storage API
+   - Injects the fake-date script into pages using `chrome.scripting.executeScript` with `world: 'MAIN'`
 
 2. **Fake Date Core** (`src/lib/fake-date.ts`)
-   - `window.Date`をラップしてモックDateオブジェクトを作成
-   - `Date.now()`と`new Date()`の両方をオーバーライド
-   - `window.__FakeDate`にインジェクト/削除機能を格納
+   - Wraps `window.Date` to create a mock Date object
+   - Overrides both `Date.now()` and `new Date()`
+   - Applies time speed multiplier to control clock progression
+   - Stores inject/remove functions on `window.__FakeDate`
 
 3. **Popup UI** (`src/popup/`)
-   - Material-UIコンポーネントでUIを構築
-   - 現在開いているタブのオリジンに対して設定を管理
-   - React HooksでChrome Storage APIと連携
+   - Built with Material-UI components
+   - Manages settings for the current tab's origin
+   - Syncs with Chrome Storage API via React Hooks
 
-### 技術スタック
+### Tech Stack
 
-- **フレームワーク**: React 18 + TypeScript
-- **ビルドツール**: Vite + @crxjs/vite-plugin
-- **UIライブラリ**: Material-UI (MUI)
-- **日時処理**: Day.js
-- **パッケージマネージャー**: npm/pnpm/yarn
+- **Framework**: React 19 + TypeScript
+- **Build Tool**: Vite + @crxjs/vite-plugin
+- **UI Library**: Material-UI (MUI)
+- **Date Handling**: Day.js
+- **E2E Testing**: Playwright
 
-## 開発コマンド
+## Development Commands
 
 ```bash
-# 開発モード（ホットリロード）
+# Development mode (hot reload)
 npm run dev
 
-# ビルド
+# Build
 npm run build
 
-# 監視モード
+# Watch mode
 npm run watch
 
-# リント
+# Lint
 npm run lint
+
+# E2E tests
+npm run test:e2e
+
+# Package for distribution
+npm run package
 ```
 
-## インストール方法
+## Installation
 
-1. `npm run build`でビルド
-2. Chromeで`chrome://extensions/`を開く
-3. 「デベロッパーモード」を有効化
-4. 「パッケージ化されていない拡張機能を読み込む」から`dist`フォルダを選択
+1. Build with `npm run build`
+2. Open `chrome://extensions/` in Chrome
+3. Enable "Developer mode"
+4. Click "Load unpacked" and select the `dist` folder
 
-## 使い方
+## Usage
 
-1. テストしたいWebサイトを開く
-2. 拡張機能のアイコンをクリック
-3. スイッチをオンにして、モックしたい日時を選択
-4. 時間経過モードを選択（必要に応じて）
-5. 自動リロードをオンにすると即座に反映されます
+1. Open the website you want to test
+2. Click the extension icon
+3. Toggle the switch on and select the desired date and time
+4. Adjust the time speed if needed (0 to freeze, >1 to fast-forward)
+5. Choose a time-lapse mode (Reset or Keep)
+6. Enable auto-reload for instant application
 
-アイコンの色でモックの状態が確認できます：
-- カラーアイコン: モック有効
-- グレーアイコン: モック無効
+Icon colors indicate mock status:
+- Color icon: Mock active
+- Gray icon: Mock inactive
 
-## 権限について
+## Permissions
 
-この拡張機能が要求する権限とその使用目的：
+This extension requires the following permissions:
 
-- **`storage`**: サイトごとの設定（日時、有効/無効など）をローカルに保存するために使用
-- **`scripting`**: Dateオブジェクトをモック化するスクリプトをページに注入するために使用
-- **`webNavigation`**: ページ読み込み時に自動的にモックを適用するために使用
-- **`<all_urls>`**: すべてのウェブサイトでDateのモック化を可能にするために必要
+- **`storage`**: Stores per-site settings (date, enabled/disabled, etc.) locally
+- **`scripting`**: Injects the Date mocking script into pages
+- **`webNavigation`**: Automatically applies mocking on page load
+- **`<all_urls>`**: Required to enable Date mocking on all websites
 
-**プライバシーポリシー**: この拡張機能はデータを外部に送信しません。すべての設定はお使いのブラウザ内にローカル保存されます。
+**Privacy Policy**: This extension does not send any data externally. All settings are stored locally in your browser.
 
-## セキュリティ
+## Security
 
-- Content Security Policy (CSP) を実装し、XSS攻撃から保護
-- ユーザー入力は適切にサニタイズ
-- 外部への通信なし（完全にローカル動作）
-- オープンソースで監査可能
+- Content Security Policy (CSP) implemented to protect against XSS attacks
+- User input is properly sanitized
+- No external communication (fully local operation)
+- Open source and auditable

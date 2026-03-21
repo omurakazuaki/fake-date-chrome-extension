@@ -73,23 +73,15 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
   if (!origins.length) return
   const tabs = await chrome.tabs.query({})
 
-  // 変更されたオリジンに一致する全タブにFakeDateを適用
+  // 変更されたオリジンに一致する全タブにFakeDateを適用し、バッジも更新
   tabs.forEach((tab) => {
     if (!tab?.url) return
     const url = new URL(tab.url)
     const setting = changes[url.origin]?.newValue
     if (!setting) return
     executeFakeDateFunction(tab.id!, setting)
+    updateBadge(tab.id!, setting)
   })
-
-  // バッジは現在アクティブなタブの設定で更新（重要）
-  const activeTabs = await chrome.tabs.query({
-    active: true,
-    currentWindow: true,
-  })
-  if (activeTabs[0]?.id) {
-    await updateBadgeForTab(activeTabs[0].id)
-  }
 })
 
 /**
@@ -108,6 +100,7 @@ function executeFakeDateFunction(tabId: number, setting: Setting | undefined) {
       tabId,
       setting.date,
       calculateStartingTime(setting),
+      setting.timeSpeed ?? 1,
       setting.autoReload,
     )
   } else {
@@ -127,12 +120,25 @@ function executeFakeDateFunction(tabId: number, setting: Setting | undefined) {
  * これにより、ユーザーは拡張機能のアイコンを見るだけで
  * 現在のタブでFakeDateが有効かどうかを確認できます
  */
-function updateBadge(setting: Setting | undefined) {
-  const { path, title } = setting?.enabled
-    ? { path: 'icon128.png', title: `Fake Date (${setting.date})` }
-    : { path: 'icon128_disabled.png', title: 'Fake Date (OFF)' }
-  chrome.action.setIcon({ path })
-  chrome.action.setTitle({ title })
+async function updateBadge(tabId: number, setting: Setting | undefined) {
+  const title = setting?.enabled
+    ? `Fake Date (${setting.date})`
+    : 'Fake Date (OFF)'
+  await chrome.action.setIcon({
+    tabId,
+    path: setting?.enabled ? 'icon128.png' : 'icon128_disabled.png',
+  })
+
+  if (setting?.enabled) {
+    await chrome.action.setBadgeText({ tabId, text: 'ON' })
+    await chrome.action.setBadgeBackgroundColor({
+      tabId,
+      color: '#4CAF50',
+    })
+  } else {
+    await chrome.action.setBadgeText({ tabId, text: '' })
+  }
+  chrome.action.setTitle({ tabId, title })
 }
 
 /**
@@ -153,7 +159,7 @@ async function updateBadgeForTab(tabId: number) {
   try {
     const tab = await chrome.tabs.get(tabId)
     if (!tab?.url) {
-      updateBadge(undefined)
+      updateBadge(tabId, undefined)
       return
     }
 
@@ -161,10 +167,10 @@ async function updateBadgeForTab(tabId: number) {
     const origin = url.origin
     const settings = await chrome.storage.local.get<Settings>(origin)
     const setting = settings[origin]
-    updateBadge(setting)
+    updateBadge(tabId, setting)
   } catch (error) {
     debug('updateBadgeForTab error:', error)
-    updateBadge(undefined)
+    updateBadge(tabId, undefined)
   }
 }
 
@@ -185,11 +191,12 @@ function executeCreateFakeDate(
   tabId: number,
   date: string,
   startingTime: number,
+  timeSpeed: number,
 ) {
   chrome.scripting.executeScript({
     target: { tabId },
     func: createFakeDate,
-    args: [date, startingTime],
+    args: [date, startingTime, timeSpeed],
     world: 'MAIN',
     injectImmediately: true,
   })
@@ -213,12 +220,13 @@ function executeInjectFakeDate(
   tabId: number,
   date: string,
   startingTime: number,
+  timeSpeed: number,
   autoReload: boolean,
 ) {
   chrome.scripting.executeScript({
     target: { tabId },
     func: injectFakeDate,
-    args: [date, startingTime, autoReload],
+    args: [date, startingTime, timeSpeed, autoReload],
     world: 'MAIN',
     injectImmediately: true,
   })
@@ -281,7 +289,9 @@ async function setupFakeDate(tabId: number) {
       tabId,
       setting?.enabled ? setting.date : '',
       calculateStartingTime(setting),
+      setting?.timeSpeed ?? 1,
     )
+    await updateBadge(tabId, setting)
   } catch (error) {
     // タブが既に閉じられている場合などのエラーを無視
     debug('setupFakeDate error:', error)
@@ -295,9 +305,6 @@ async function setupFakeDate(tabId: number) {
  * @returns 起点となるタイムスタンプ（ミリ秒）
  *
  * 時間経過モード:
- * - STOP: -1 を返す（時刻を固定、経過しない）
- *   例: 2023-01-01 12:00:00 に設定すると、常にこの時刻を返す
- *
  * - RESET: Date.now() を返す（現在時刻を起点とする）
  *   例: 2023-01-01 12:00:00 に設定し、10秒後に取得すると 2023-01-01 12:00:10 になる
  *   ページをリロードすると、その時点から再度カウントが始まる
@@ -307,13 +314,11 @@ async function setupFakeDate(tabId: number) {
  *   ページをリロードしても、最初の設定時点からの経過時間が維持される
  *
  * 計算式:
- * FakeDate.now() = 設定日時 + (現在時刻 - 起点時刻)
- * ※ STOP モードの場合は (現在時刻 - 起点時刻) が 0 になる
+ * FakeDate.now() = 設定日時 + (現在時刻 - 起点時刻) * timeSpeed
+ * ※ timeSpeed が 0 の場合は時刻が固定される
  */
 function calculateStartingTime(setting: Setting | undefined) {
   switch (setting?.timeLapse) {
-    case 'STOP':
-      return -1
     case 'RESET':
       return Date.now()
     default:

@@ -4,6 +4,7 @@ export type Setting = {
   timeLapse: string
   autoReload: boolean
   startingTime: number
+  timeSpeed: number
 }
 export type Settings = Record<string, Setting>
 

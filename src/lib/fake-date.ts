@@ -5,23 +5,23 @@ declare global {
 }
 
 interface FakeDate {
-  inject: (date: string, startingTime: number) => void
+  inject: (date: string, startingTime: number, timeSpeed: number) => void
   remove: () => void
 }
 
-export const createFakeDate = (date: string, startingTime: number) => {
+export const createFakeDate = (date: string, startingTime: number, timeSpeed: number) => {
   if (window.__FakeDate) return window.__FakeDate
   window.__FakeDate = (() => {
     const RealDate = window.Date
     return {
-      inject: (date: string, startingTime: number) => {
+      inject: (date: string, startingTime: number, timeSpeed: number) => {
         function FakeDate(...args: ConstructorParameters<typeof Date>) {
           return [...args].length === 0
             ? new RealDate(FakeDate.now())
             : new RealDate(...args)
         }
         FakeDate.now = () => {
-          const delta = startingTime < 0 ? 0 : RealDate.now() - startingTime
+          const delta = (RealDate.now() - startingTime) * timeSpeed
           return new RealDate(date).getTime() + delta
         }
         FakeDate.real = RealDate
@@ -35,16 +35,17 @@ export const createFakeDate = (date: string, startingTime: number) => {
     }
   })()
   if (date) {
-    window.__FakeDate.inject(date, startingTime)
+    window.__FakeDate.inject(date, startingTime, timeSpeed)
   }
 }
 
 export const injectFakeDate = (
   date: string,
   startingTime: number,
+  timeSpeed: number,
   autoReload: boolean,
 ) => {
-  window.__FakeDate.inject(date, startingTime)
+  window.__FakeDate.inject(date, startingTime, timeSpeed)
   if (autoReload) location.reload()
 }
 

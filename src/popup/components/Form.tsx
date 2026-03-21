@@ -9,6 +9,7 @@ import {
   RadioGroup,
   Stack,
   Switch,
+  TextField,
   Typography,
 } from '@mui/material'
 import {
@@ -27,12 +28,14 @@ export default function Form() {
     date,
     autoReload,
     timeLapse,
+    timeSpeed,
     history,
     hasChanges,
     handleSwitchChange,
     handleDateChange,
     handleAutoReloadChange,
     handleTimeLapseChange,
+    handleTimeSpeedChange,
     handleApply,
     handleHistorySelect,
     handleHistoryDelete,
@@ -40,7 +43,7 @@ export default function Form() {
 
   return (
     <Box sx={{ p: 1.5, maxHeight: '600px', overflowY: 'auto' }}>
-      <Box sx={{ mb: 1.5 }}>
+      <Box sx={{ mb: 2 }}>
         <Typography
           variant="caption"
           sx={{ mb: 0.5, display: 'block', wordBreak: 'break-all' }}
@@ -86,7 +89,7 @@ export default function Form() {
               </Stack>
             </Box>
           )}
-          <FormGroup sx={{ mb: 1.5 }}>
+          <FormGroup sx={{ mb: 2 }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="Date"
@@ -101,7 +104,7 @@ export default function Form() {
               />
             </LocalizationProvider>
           </FormGroup>
-          <FormGroup sx={{ mb: 1.5 }}>
+          <FormGroup sx={{ mb: 2 }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <TimePicker
                 label="Time"
@@ -117,7 +120,7 @@ export default function Form() {
               />
             </LocalizationProvider>
           </FormGroup>
-          <FormGroup sx={{ mb: 1.5 }}>
+          <FormGroup sx={{ mb: 2 }}>
             <FormControlLabel
               control={
                 <Switch
@@ -129,7 +132,7 @@ export default function Form() {
               label="Automatic reload"
             />
           </FormGroup>
-          <FormGroup sx={{ mb: 1.5 }}>
+          <FormGroup sx={{ mb: 2 }}>
             <FormLabel sx={{ mb: 0.5, fontSize: '0.875rem' }}>
               Time lapse mode
             </FormLabel>
@@ -140,6 +143,7 @@ export default function Form() {
                 label="Reset on reload"
                 disabled={!enabled}
                 sx={{
+                  my: -1,
                   '& .MuiFormControlLabel-label': { fontSize: '0.875rem' },
                 }}
               />
@@ -149,19 +153,32 @@ export default function Form() {
                 label="Keep"
                 disabled={!enabled}
                 sx={{
-                  '& .MuiFormControlLabel-label': { fontSize: '0.875rem' },
-                }}
-              />
-              <FormControlLabel
-                value="STOP"
-                control={<Radio size="small" />}
-                label="Stop"
-                disabled={!enabled}
-                sx={{
+                  my: -1,
                   '& .MuiFormControlLabel-label': { fontSize: '0.875rem' },
                 }}
               />
             </RadioGroup>
+          </FormGroup>
+          <FormGroup sx={{ mb: 2 }}>
+            <TextField
+              label="Time speed (x0 = stop)"
+              type="number"
+              value={timeSpeed}
+              onChange={handleTimeSpeedChange}
+              disabled={!enabled}
+              size="small"
+              fullWidth
+              slotProps={{
+                htmlInput: { min: 0, step: 0.1 },
+                input: {
+                  startAdornment: (
+                    <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>
+                      x
+                    </Typography>
+                  ),
+                },
+              }}
+            />
           </FormGroup>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button

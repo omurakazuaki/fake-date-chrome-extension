@@ -11,6 +11,7 @@ export function useStorage(origin: string | null) {
     date: string,
     autoReload: boolean,
     timeLapse: string,
+    timeSpeed: number,
     addToHistoryFlag = false,
   ) => {
     if (!origin) return
@@ -20,6 +21,7 @@ export function useStorage(origin: string | null) {
         date,
         autoReload,
         timeLapse,
+        timeSpeed,
         startingTime: Date.now(),
       },
     })
@@ -35,6 +37,7 @@ export function useStorage(origin: string | null) {
     setDate: (date: Dayjs) => void,
     setAutoReload: (autoReload: boolean) => void,
     setTimeLapse: (timeLapse: string) => void,
+    setTimeSpeed: (timeSpeed: number) => void,
   ) => {
     const settings = await chrome.storage.local.get<Settings>(origin)
     if (!origin) return
@@ -44,6 +47,7 @@ export function useStorage(origin: string | null) {
     setDate(dayjs(setting.date ?? Date.now()))
     setAutoReload(setting.autoReload ?? false)
     setTimeLapse(setting.timeLapse ?? 'RESET')
+    setTimeSpeed(setting.timeSpeed ?? 1)
   }
 
   const addToHistory = async (item: HistoryItem) => {
