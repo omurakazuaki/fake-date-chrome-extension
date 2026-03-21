@@ -66,6 +66,8 @@ test.describe('Icon badge', () => {
   }) => {
     const page = await context.newPage()
     await page.goto(TEST_ORIGIN)
+    // setupFakeDate（onCommitted由来）の完了を待つ
+    await page.waitForTimeout(500)
 
     await setFakeDateStorage(background, TEST_ORIGIN, {
       enabled: true,
@@ -87,6 +89,7 @@ test.describe('Icon badge', () => {
   }) => {
     const page = await context.newPage()
     await page.goto(TEST_ORIGIN)
+    await page.waitForTimeout(500)
 
     await setFakeDateStorage(background, TEST_ORIGIN, {
       enabled: true,
@@ -111,6 +114,7 @@ test.describe('Icon badge', () => {
   }) => {
     const page = await context.newPage()
     await page.goto(TEST_ORIGIN)
+    await page.waitForTimeout(500)
 
     // 一度 ON にする
     await setFakeDateStorage(background, TEST_ORIGIN, {
@@ -140,6 +144,7 @@ test.describe('Icon badge', () => {
   }) => {
     const page = await context.newPage()
     await page.goto(TEST_ORIGIN)
+    await page.waitForTimeout(500)
 
     // 一度 ON → OFF にする
     await setFakeDateStorage(background, TEST_ORIGIN, {
@@ -170,6 +175,7 @@ test.describe('Icon badge', () => {
   }) => {
     const page1 = await context.newPage()
     await page1.goto(TEST_ORIGIN)
+    await page1.waitForTimeout(500)
 
     await setFakeDateStorage(background, TEST_ORIGIN, {
       enabled: true,
@@ -196,6 +202,7 @@ test.describe('Icon badge', () => {
   }) => {
     const page1 = await context.newPage()
     await page1.goto(TEST_ORIGIN)
+    await page1.waitForTimeout(500)
 
     await setFakeDateStorage(background, TEST_ORIGIN, {
       enabled: false,
@@ -222,6 +229,7 @@ test.describe('Icon badge', () => {
   }) => {
     const page1 = await context.newPage()
     await page1.goto(TEST_ORIGIN)
+    await page1.waitForTimeout(500)
     const page2 = await context.newPage()
     await page2.goto(TEST_ORIGIN)
     await page2.waitForTimeout(500)
@@ -256,8 +264,10 @@ test.describe('Icon badge', () => {
   }) => {
     const page1 = await context.newPage()
     await page1.goto(TEST_ORIGIN)
+    await page1.waitForTimeout(500)
     const page2 = await context.newPage()
     await page2.goto(TEST_ORIGIN)
+    await page2.waitForTimeout(500)
 
     // 一度 ON にする
     await setFakeDateStorage(background, TEST_ORIGIN, {

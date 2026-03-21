@@ -1,6 +1,6 @@
-import { test as base, chromium, BrowserContext } from '@playwright/test'
-import { ServiceWorker } from 'playwright-core'
+import { test as base, BrowserContext, chromium } from '@playwright/test'
 import path from 'path'
+import { ServiceWorker } from 'playwright-core'
 
 type ExtensionFixtures = {
   context: BrowserContext
@@ -58,14 +58,16 @@ export async function setFakeDateStorage(
   options: {
     enabled: boolean
     date?: string
-    timeLapse?: 'STOP' | 'RESET' | 'KEEP'
+    timeLapse?: 'RESET' | 'KEEP'
+    timeSpeed?: number
     autoReload?: boolean
   },
 ) {
   const setting = {
     enabled: options.enabled,
     date: options.date ?? new Date().toISOString(),
-    timeLapse: options.timeLapse ?? 'STOP',
+    timeLapse: options.timeLapse ?? 'RESET',
+    timeSpeed: options.timeSpeed ?? 1,
     autoReload: options.autoReload ?? false,
     startingTime: Date.now(),
   }

@@ -7,7 +7,7 @@ test.afterEach(async ({ background }) => {
 })
 
 test.describe('FakeDate injection', () => {
-  test('STOP モード: 指定した日時で Date が固定される', async ({
+  test('timeSpeed=0: 指定した日時で Date が固定される', async ({
     context,
     background,
   }) => {
@@ -21,7 +21,7 @@ test.describe('FakeDate injection', () => {
     await setFakeDateStorage(background, TEST_ORIGIN, {
       enabled: true,
       date: fakeDate,
-      timeLapse: 'STOP',
+      timeSpeed: 0,
     })
 
     // storage.onChanged → executeScript が完了するまで待機
@@ -32,7 +32,7 @@ test.describe('FakeDate injection', () => {
         year: new Date().getFullYear(),
         month: new Date().getMonth() + 1,
         day: new Date().getDate(),
-        // STOP モードでは Date.now() が変化しない
+        // timeSpeed=0 では Date.now() が変化しない
         nowA: Date.now(),
         nowB: Date.now(),
       }
@@ -41,7 +41,7 @@ test.describe('FakeDate injection', () => {
     expect(result.year).toBe(2020)
     expect(result.month).toBe(6)
     expect(result.day).toBe(15)
-    // STOP モードでは Date.now() が変化しない（同一タスク内）
+    // timeSpeed=0 では Date.now() が変化しない（同一タスク内）
     expect(result.nowA).toBe(result.nowB)
   })
 
@@ -118,7 +118,7 @@ test.describe('FakeDate injection', () => {
     await setFakeDateStorage(background, TEST_ORIGIN, {
       enabled: true,
       date: fakeDate,
-      timeLapse: 'STOP',
+      timeSpeed: 0,
     })
 
     // FakeDate 注入が完了するまで少し待機

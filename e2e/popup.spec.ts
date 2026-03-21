@@ -98,8 +98,8 @@ test.describe('Popup UI', () => {
     await popup.getByRole('group', { name: 'Time' }).click()
     await popup.keyboard.type('120000')
 
-    // STOP モードを選択
-    await popup.getByLabel('Stop').click()
+    // Keep モードを選択
+    await popup.getByLabel('Keep').click()
 
     // Apply ボタンをクリック
     await popup.getByRole('button', { name: 'Apply' }).click()
@@ -113,8 +113,62 @@ test.describe('Popup UI', () => {
 
     expect(stored).toBeDefined()
     expect(stored.enabled).toBe(true)
-    expect(stored.timeLapse).toBe('STOP')
+    expect(stored.timeLapse).toBe('KEEP')
     expect(stored.date).toContain('2020-06-15')
+  })
+
+  test('timeSpeed を 0 に設定して Apply すると timeSpeed: 0 で保存される', async ({
+    context,
+    background,
+  }) => {
+    const popup = await openExtensionPopup(background, context, TEST_ORIGIN)
+    await popup.locator('label').click()
+    await expect(popup.getByText('Enabled')).toBeVisible()
+
+    // timeSpeed 入力欄をクリアして 0 を入力
+    const timeSpeedInput = popup.getByLabel('Time speed (x0 = stop)')
+    await timeSpeedInput.click()
+    await timeSpeedInput.fill('0')
+
+    // Apply ボタンをクリック
+    await popup.getByRole('button', { name: 'Apply' }).click()
+    await popup.waitForTimeout(300)
+
+    const stored = await background.evaluate(async (origin: string) => {
+      const result = await chrome.storage.local.get(origin)
+      return result[origin]
+    }, TEST_ORIGIN)
+
+    expect(stored).toBeDefined()
+    expect(stored.enabled).toBe(true)
+    expect(stored.timeSpeed).toBe(0)
+  })
+
+  test('timeSpeed を 10 に設定して Apply すると timeSpeed: 10 で保存される', async ({
+    context,
+    background,
+  }) => {
+    const popup = await openExtensionPopup(background, context, TEST_ORIGIN)
+    await popup.locator('label').click()
+    await expect(popup.getByText('Enabled')).toBeVisible()
+
+    // timeSpeed 入力欄をクリアして 10 を入力
+    const timeSpeedInput = popup.getByLabel('Time speed (x0 = stop)')
+    await timeSpeedInput.click()
+    await timeSpeedInput.fill('10')
+
+    // Apply ボタンをクリック
+    await popup.getByRole('button', { name: 'Apply' }).click()
+    await popup.waitForTimeout(300)
+
+    const stored = await background.evaluate(async (origin: string) => {
+      const result = await chrome.storage.local.get(origin)
+      return result[origin]
+    }, TEST_ORIGIN)
+
+    expect(stored).toBeDefined()
+    expect(stored.enabled).toBe(true)
+    expect(stored.timeSpeed).toBe(10)
   })
 
   test('既存の設定が有効化されている場合、ポップアップに反映される', async ({
@@ -127,7 +181,8 @@ test.describe('Popup UI', () => {
         [origin]: {
           enabled: true,
           date: '2019-03-20T08:30:00.000Z',
-          timeLapse: 'STOP',
+          timeLapse: 'RESET',
+          timeSpeed: 1,
           autoReload: false,
           startingTime: Date.now(),
         },
