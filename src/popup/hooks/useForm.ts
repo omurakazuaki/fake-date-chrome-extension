@@ -12,12 +12,12 @@ export function useForm() {
   const [timeSpeed, setTimeSpeed] = useState<number>(1)
   const [history, setHistory] = useState<History>([])
   const [hasChanges, setHasChanges] = useState(false)
+  const [applied, setApplied] = useState(false)
   const {
     saveSetting,
     loadSetting,
     loadHistory,
     deleteHistoryItem,
-    addToHistory,
   } = useStorage(origin)
 
   const handleSwitchChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -69,19 +69,18 @@ export function useForm() {
       true,
     )
     setHasChanges(false)
+    setApplied(true)
     const historyData = await loadHistory()
     setHistory(historyData)
   }
 
-  const handleHistorySelect = async (historyItem: History[0]) => {
+  const handleAppliedClose = () => {
+    setApplied(false)
+  }
+
+  const handleHistorySelect = (historyItem: History[0]) => {
     setDate(dayjs(historyItem.date))
-    // 履歴選択時は即時反映
-    await saveSetting(enabled, historyItem.date, autoReload, timeLapse, timeSpeed, false)
-    // 選択した日付を履歴の先頭に移動
-    await addToHistory({ date: historyItem.date, timestamp: Date.now() })
-    const historyData = await loadHistory()
-    setHistory(historyData)
-    setHasChanges(false)
+    setHasChanges(true)
   }
 
   const handleHistoryDelete = async (date: string) => {
@@ -120,12 +119,14 @@ export function useForm() {
     timeSpeed,
     history,
     hasChanges,
+    applied,
     handleSwitchChange,
     handleDateChange,
     handleAutoReloadChange,
     handleTimeLapseChange,
     handleTimeSpeedChange,
     handleApply,
+    handleAppliedClose,
     handleHistorySelect,
     handleHistoryDelete,
   }
